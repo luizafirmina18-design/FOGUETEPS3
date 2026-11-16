@@ -1,47 +1,44 @@
-TITLE		:= Spaceflight Simulator
-TARGET		:= SpaceflightSimulator
-CONTENTID	:= UP0001-SFS000000_00-0000000000000000
-
-PSL1GHT		:= $(PSL1GHT)
+.RECIPEPREFIX = >
 ifeq ($(strip $(PSL1GHT)),)
-$(error "Please set PSL1GHT in your environment.")
+$(error "Defina a variavel PSL1GHT")
 endif
-
 include $(PSL1GHT)/ppu_rules
 
-SOURCES		:= source/
-DATA		:= data/
+.DEFAULT_GOAL := all
 
-INCLUDES	:= -I$(PORTLIBS)/include -I$(PSL1GHT)/ppu/include
-CFLAGS		:= -O2 -Wall -mcpu=cell $(INCLUDES)
-CXXFLAGS	:= $(CFLAGS)
-LDFLAGS		:= -L$(PORTLIBS)/lib -L$(PSL1GHT)/ppu/lib
-LIBS		:= -lSDL -lio -lsysutil -lm -lrt -llv2
+TARGET    := SpaceflightSimulator
+TITLE     := Spaceflight Simulator
+APPID     := SFS000000
+CONTENTID := UP0001-$(APPID)_00-0000000000000000
+SFOXML    := sfo.xml
+PORTLIBS  := $(PS3DEV)/portlibs/ppu
 
-CFILES		:= $(foreach dir,$(SOURCES),$(wildcard $(dir)*.c))
-CPPFILES	:= $(foreach dir,$(SOURCES),$(wildcard $(dir)*.cpp))
-OFILES		:= $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
+MACHDEP := -mhard-float -fmodulo-sched -ffunction-sections -fdata-sections
+CFLAGS  := -O2 -Wall -mcpu=cell $(MACHDEP) -I$(PSL1GHT)/ppu/include -I$(PORTLIBS)/include
+CXXFLAGS := $(CFLAGS)
+LDFLAGS := $(MACHDEP) -L$(PSL1GHT)/ppu/lib -L$(PORTLIBS)/lib
+LIBS    := -lSDL -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lm
 
-all: $(TARGET).elf $(TARGET).self
+OBJS := source/main.o source/game.o source/render.o
 
-$(TARGET).elf: $(OFILES)
-	$(CXX) $(CFLAGS) $(OFILES) -o $@ $(LDFLAGS) $(LIBS)
+all: $(TARGET).pkg
 
-$(TARGET).self: $(TARGET).elf
-	$(SELF) $< $@
+source/%.o: source/%.cpp
+>$(CXX) $(CXXFLAGS) -c $< -o $@
 
-pkg: $(TARGET).self
-	@echo "Gerando PARAM.SFO e PKG..."
-	$(PSL1GHT)/host/bin/sfo.py -f sfo.xml -o PARAM.SFO
-	mkdir -p pkg/USRDIR
-	cp $(TARGET).self pkg/USRDIR/EBOOT.BIN
-	cp PARAM.SFO pkg/PARAM.SFO
-	cp ICON0.PNG pkg/ICON0.PNG 2>/dev/null || echo "sem ICON0, segue o jogo"
-	$(PSL1GHT)/host/bin/pkg.py --contentid $(CONTENTID) pkg/ $(TARGET).pkg
-	ls -lh $(TARGET).pkg
+$(TARGET).elf: $(OBJS)
+>$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+
+$(TARGET).pkg: $(TARGET).elf ICON0.PNG $(SFOXML)
+>rm -rf pkg
+>mkdir -p pkg/USRDIR
+>cp ICON0.PNG pkg/ICON0.PNG
+>$(PS3DEV)/bin/sprxlinker $(TARGET).elf
+>$(PS3DEV)/bin/make_self_npdrm $(TARGET).elf pkg/USRDIR/EBOOT.BIN $(CONTENTID)
+>$(PS3DEV)/bin/sfo.py --title "$(TITLE)" --appid "$(APPID)" -f $(SFOXML) pkg/PARAM.SFO
+>$(PS3DEV)/bin/pkg.py --contentid $(CONTENTID) pkg/ $@
 
 clean:
-	rm -f $(OFILES) $(TARGET).elf $(TARGET).self PARAM.SFO $(TARGET).pkg
-	rm -rf pkg
+>rm -rf pkg *.o *.elf *.self *.pkg source/*.o
 
-.PHONY: all clean pkg
+.PHONY: all clean
