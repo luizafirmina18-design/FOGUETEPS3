@@ -1,9 +1,9 @@
-.RECIPEPREFIX = >
 ifeq ($(strip $(PSL1GHT)),)
 $(error "Defina a variavel PSL1GHT")
 endif
 include $(PSL1GHT)/ppu_rules
 
+.RECIPEPREFIX = >
 .DEFAULT_GOAL := all
 
 TARGET    := SpaceflightSimulator
