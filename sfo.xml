@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <params>
   <param key="TITLE" type="str">Spaceflight Simulator</param>
-  <param key="TITLE_ID" type="str">SFS00000</param>
+  <param key="TITLE_ID" type="str">SFS000000</param>
   <param key="CATEGORY" type="str">HG</param>
   <param key="VERSION" type="str">01.00</param>
 </params>
