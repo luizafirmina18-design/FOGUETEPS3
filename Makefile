@@ -17,7 +17,7 @@ MACHDEP := -mhard-float -fmodulo-sched -ffunction-sections -fdata-sections
 CFLAGS  := -O2 -Wall -mcpu=cell $(MACHDEP) -I$(PSL1GHT)/ppu/include -I$(PORTLIBS)/include
 CXXFLAGS := $(CFLAGS)
 LDFLAGS := $(MACHDEP) -L$(PSL1GHT)/ppu/lib -L$(PORTLIBS)/lib
-LIBS    := -lSDL -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lm
+LIBS    := -lSDL -laudio -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lm
 
 OBJS := source/main.o source/game.o source/render.o
 
